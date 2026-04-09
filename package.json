@@ -1,6 +1,7 @@
 {
   "name": "electron-debug",
   "version": "1.0.0",
+  "type": "module",
   "description": "Claude Code Skill for debugging Electron applications using Chrome DevTools Protocol (CDP)",
   "main": "dist/index.js",
   "bin": {
