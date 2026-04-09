@@ -2,12 +2,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js 18+](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![skills.sh](https://img.shields.io/badge/skills.sh-electron--debug-33aadd)](https://skills.sh)
 
-Claude Code Skill for debugging Electron applications using Chrome DevTools Protocol (CDP).
+> Claude Code Skill for debugging Electron applications using Chrome DevTools Protocol (CDP)
 
 ## Features
 
-- **Daemon Mode** - Background process maintains CDP connection for continuous operation testing
+- **Daemon Mode** - Background process maintains CDP connection for continuous testing
 - **Full CDP Support** - Console, Network, DOM, Screenshot, Element Click, etc.
 - **AI-Assisted Diagnosis** - Auto-collect debugging info when describing issues
 - **Flexible Port Configuration** - Custom debugging port support
@@ -19,28 +20,24 @@ Claude Code Skill for debugging Electron applications using Chrome DevTools Prot
 
 ## Installation
 
-### Quick Install
+### Quick Install (via skills.sh)
+
+```bash
+npx skills add kvenLin/electron-debug@electron-debug
+```
+
+### Manual Install
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/electron-debug.git
+git clone https://github.com/kvenLin/electron-debug.git
 cd electron-debug
 
-# Install dependencies (if not already built)
+# Install dependencies
 npm install
 ```
 
-### Install as Claude Code Skill
-
-```bash
-# Copy to Claude Code skills directory
-cp -r ~/path/to/electron-debug ~/.claude/skills/electron-debug
-
-# Reload plugins
-/reload-plugins
-```
-
-Or create a symlink (for development):
+### Development (Symlink)
 
 ```bash
 ln -s ~/path/to/electron-debug ~/.claude/skills/electron-debug
@@ -231,8 +228,11 @@ electron-debug/
 │   ├── cli.js        # CLI client entry
 │   └── daemon.js     # Daemon service entry
 ├── dist/             # Compiled JavaScript
-├── node_modules/      # Dependencies
-├── SKILL.md          # Skill definition
+├── skills/
+│   └── electron-debug/
+│       └── SKILL.md  # Claude Code Skill definition
+├── node_modules/     # Dependencies
+├── package.json
 └── README.md         # This file
 ```
 
@@ -259,6 +259,39 @@ kill <PID>
 ### Screenshot Returns JSON Instead of Image?
 
 Use `GET /screenshot` instead of `POST /screenshot`.
+
+### Cannot Find Skill After Install?
+
+```bash
+# Check installed skills
+npx skills list
+
+# Reload plugins
+/reload-plugins
+```
+
+### Permission Denied (npm install)?
+
+```bash
+sudo npm install
+# or
+npm install --prefix ~/.local
+```
+
+## Quick Reference
+
+| Task | Command |
+|------|---------|
+| Connect | `/electron-debug connect --electron-port 9333` |
+| Screenshot | `/electron-debug screenshot` |
+| Click | `/electron-debug click "#btn"` |
+| Console | `/electron-debug console` |
+| Diagnose | `/electron-debug diagnose "issue description"` |
+| Disconnect | `/electron-debug disconnect` |
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ## License
 
