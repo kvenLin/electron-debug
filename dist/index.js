@@ -408,6 +408,36 @@ async function cmdConsole(args) {
     });
 }
 async function cmdNetwork(args) {
+    // Try daemon mode first (for non-watch modes)
+    if (!args.watch && !args.pause && !args.resume && !args.request) {
+        const isDaemonRunning = await daemonCheck();
+        if (isDaemonRunning) {
+            try {
+                const result = await daemonRequest('/network', 'GET');
+                if (result.requests && result.requests.length > 0) {
+                    console.log('\nNetwork Requests:');
+                    console.log('─'.repeat(60));
+                    result.requests.forEach((req) => {
+                        console.log(`→ ${req.method} ${req.url}`);
+                    });
+                }
+                else {
+                    console.log('No network requests recorded.');
+                }
+                if (result.responses && result.responses.length > 0) {
+                    console.log('\nNetwork Responses:');
+                    console.log('─'.repeat(60));
+                    result.responses.forEach((resp) => {
+                        console.log(`← [${resp.status}] ${resp.url}`);
+                    });
+                }
+            } catch (err) {
+                console.error('Error:', err.message);
+            }
+            return;
+        }
+    }
+    // Direct mode (or watch mode)
     if (!client) {
         console.log('Not connected.');
         return;
@@ -489,6 +519,30 @@ async function cmdScreenshot(args) {
     }
 }
 async function cmdDom(args) {
+    // Try daemon mode first
+    const isDaemonRunning = await daemonCheck();
+    if (isDaemonRunning) {
+        const selector = String(args.selector || 'body');
+        const props = String(args.props || '');
+        try {
+            const result = await daemonRequest('/dom', 'POST', { selector, props });
+            console.log(`\nElement: ${selector}`);
+            console.log('─'.repeat(60));
+            console.log('HTML:', (result.html || '').slice(0, 500));
+            if (result.attrs && props) {
+                console.log('\nAttributes:');
+                result.attrs
+                    .filter(([name]) => props.split(',').map((p) => p.trim()).includes(name))
+                    .forEach(([name, value]) => {
+                    console.log(`  ${name}="${value}"`);
+                });
+            }
+        } catch (err) {
+            console.error('Error:', err.message);
+        }
+        return;
+    }
+    // Direct mode
     if (!client) {
         console.log('Not connected.');
         return;
@@ -516,6 +570,28 @@ async function cmdDom(args) {
     }
 }
 async function cmdEval(args) {
+    // Try daemon mode first
+    const isDaemonRunning = await daemonCheck();
+    if (isDaemonRunning) {
+        const expr = String((args._ && Array.isArray(args._) && args._[0]) || args.expression || '');
+        if (!expr) {
+            console.log('No expression provided. Usage: eval "document.title"');
+            return;
+        }
+        try {
+            const result = await daemonRequest('/eval', 'POST', { expression: expr });
+            if (typeof result === 'object') {
+                console.log(JSON.stringify(result, null, 2));
+            }
+            else {
+                console.log(result);
+            }
+        } catch (err) {
+            console.error('Error:', err.message);
+        }
+        return;
+    }
+    // Direct mode
     if (!client) {
         console.log('Not connected.');
         return;
