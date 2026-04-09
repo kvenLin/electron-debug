@@ -2,7 +2,7 @@
 node_modules/
 
 # Build output
-dist/*.js
+# dist/ is committed (contains compiled modules)
 dist/*.map
 
 # OS files
