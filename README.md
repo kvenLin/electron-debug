@@ -20,13 +20,13 @@
 
 ## Installation
 
-### Quick Install (via skills.sh)
+### Option 1: via skills.sh (Recommended)
 
 ```bash
 npx skills add kvenLin/electron-debug@electron-debug
 ```
 
-### Manual Install
+### Option 2: Manual Install
 
 ```bash
 # Clone the repo
@@ -37,14 +37,14 @@ cd electron-debug
 npm install
 ```
 
-### Development (Symlink)
+### Option 3: Development (Symlink)
 
 ```bash
 ln -s ~/path/to/electron-debug ~/.claude/skills/electron-debug
 /reload-plugins
 ```
 
-## Usage
+## Quick Start
 
 ### 1. Start Electron App with Debug Port
 
@@ -67,13 +67,13 @@ Or add to `package.json`:
 npm run debug
 ```
 
-### 2. Connect to Electron
+### 2. Connect
 
 ```
 /electron-debug connect --electron-port 9333
 ```
 
-### 3. Debug Operations
+### 3. Debug
 
 ```bash
 # List pages
@@ -107,7 +107,7 @@ npm run debug
 
 | Command | Description |
 |---------|-------------|
-| `connect --electron-port <port>` | Start daemon and connect to Electron |
+| `connect --electron-port <port>` | Start daemon and connect |
 | `disconnect` | Disconnect and stop daemon |
 | `status` | View connection status |
 
@@ -115,7 +115,7 @@ npm run debug
 
 | Command | Description |
 |---------|-------------|
-| `daemon start --electron-port <port>` | Start daemon and connect |
+| `daemon start --electron-port <port>` | Start daemon |
 | `daemon stop` | Stop daemon |
 | `daemon status` | View daemon status |
 
@@ -125,8 +125,8 @@ npm run debug
 |---------|-------------|
 | `list-pages` | List all debuggable pages |
 | `switch-page --id <id>` | Switch to another page |
-| `screenshot` | Take screenshot |
-| `screenshot --path ./screenshot.png` | Take and save screenshot |
+| `screenshot` | Take screenshot (base64) |
+| `screenshot --path ./screenshot.png` | Save screenshot to file |
 
 ### Element Interaction
 
@@ -160,17 +160,17 @@ electron-debug uses a background daemon process to maintain CDP connection.
 ┌─────────────────────────────────────────────────────────────┐
 │  electron-debug-daemon (background, localhost:9229)          │
 │  - Maintains WebSocket CDP connection to Electron           │
-│  - Manages current active target/page                      │
+│  - Manages current active target/page                       │
 └─────────────────────────────────────────────────────────────┘
           ↑ HTTP (localhost:9229)
           │
 ┌─────────────────────────────────────────────────────────────┐
 │  electron-debug CLI / Skill                                 │
-│  - Command line client, sends HTTP requests to daemon     │
+│  - Command line client, sends HTTP requests to daemon      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Daemon Ports
+### Port Reference
 
 | Port | Purpose |
 |------|---------|
@@ -218,7 +218,7 @@ curl -X DELETE http://127.0.0.1:9229/
 | Port Configuration | Fixed 9222 | Configurable |
 | Element Click | Not supported | Supported |
 | Main Process Debugging | Not supported | Supported |
-| Auto Diagnosis | None | AI-assisted |
+| AI Diagnosis | None | AI-assisted |
 
 ## Project Structure
 
@@ -233,7 +233,8 @@ electron-debug/
 │       └── SKILL.md  # Claude Code Skill definition
 ├── node_modules/     # Dependencies
 ├── package.json
-└── README.md         # This file
+├── README.md         # English documentation
+└── README_zh.md      # Chinese documentation
 ```
 
 ## Troubleshooting
