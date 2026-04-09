@@ -20,6 +20,31 @@ description: |
 
 Electron 应用调试技能，支持 Chrome DevTools Protocol (CDP) 完整调试能力。
 
+## 中文入口
+
+**什么时候用这个技能？**
+- 调试 Electron 应用
+- 帮朋友/自己排查"按钮点了没反应"的问题
+- 看控制台有没有报错
+- 抓包看网络请求
+- 自动点页面上的按钮/输入框
+- 截图看看页面长什么样
+- AI 自动诊断问题
+
+**一句话使用流程：**
+1. 先启动 Electron： `electron . --remote-debugging-port=9333`
+2. 连接：`/electron-debug connect --electron-port 9333`
+3. 开始调试
+4. 断连：`/electron-debug disconnect`
+
+**常用场景：**
+- "debug Electron" → 自动连接调试
+- "Electron 按钮没反应" → 自动点击+诊断
+- "Electron 控制台报错" → 查看 console 错误
+- "Electron 网络请求" → 抓包分析
+- "Electron 截图" → 看看页面啥样
+- "测试 Electron" → 自动化操作测试
+
 ## 连接管理
 
 ```bash
@@ -206,18 +231,85 @@ Electron 应用调试技能，支持 Chrome DevTools Protocol (CDP) 完整调试
 /electron-debug screenshot --path step1.png
 /electron-debug eval "document.querySelector('#counter').textContent"
 
-/# 点击按钮2
+# 点击按钮2
 /electron-debug click "#btn2"
 /electron-debug screenshot --path step2.png
 /electron-debug eval "document.querySelector('#counter').textContent"
 
-/# 点击按钮3
+# 点击按钮3
 /electron-debug click "#btn3"
 /electron-debug screenshot --path step3.png
 
 # 查看所有控制台输出
 /electron-debug console
 
+# 断开
+/electron-debug disconnect
+```
+
+## 日常使用示例（白话版）
+
+### 场景1：朋友说"我点了按钮没反应"
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug screenshot
+/electron-debug click "#那个按钮"
+/electron-debug screenshot
+/electron-debug eval "document.querySelector('#output').textContent"
+/electron-debug console --type error
+/electron-debug disconnect
+```
+
+### 场景2：页面加载完白屏了
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug screenshot
+/electron-debug eval "document.body.innerHTML"
+/electron-debug console
+/electron-debug disconnect
+```
+
+### 场景3：想看看页面加载慢到底是哪里慢
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug network --watch
+# 刷新页面
+/electron-debug disconnect
+```
+
+### 场景4：表单填了提交不了，想看看到底验证过了没
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug eval "document.querySelector('form').checkValidity()"
+/electron-debug eval "document.querySelector('input').validity"
+/electron-debug console
+/electron-debug disconnect
+```
+
+### 场景5：想偷看人家网站登录请求发了啥
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug network --watch
+# 在页面上操作登录
+/electron-debug disconnect
+```
+
+### 场景6：自动化测试 - 连续点10个商品加入购物车
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug click ".product:nth-child(1) .add-cart"
+/electron-debug screenshot --path cart1.png
+/electron-debug click ".product:nth-child(2) .add-cart"
+/electron-debug screenshot --path cart2.png
+/electron-debug click ".product:nth-child(3) .add-cart"
+/electron-debug screenshot --path cart3.png
+/electron-debug eval "document.querySelector('.cart-badge').textContent"
 # 断开
 /electron-debug disconnect
 ```
