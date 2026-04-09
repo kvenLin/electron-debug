@@ -1,5 +1,5 @@
 {
-  "name": "electron-debug",
+  "name": "electron-debug-skill",
   "version": "1.0.0",
   "type": "module",
   "description": "Claude Code Skill for debugging Electron applications using Chrome DevTools Protocol (CDP)",
@@ -9,7 +9,7 @@
     "electron-debug-daemon": "./bin/daemon.js"
   },
   "scripts": {
-    "build": "echo 'No build step required - using JavaScript directly'",
+    "build": "tsc",
     "test": "echo 'No tests specified'",
     "prepublishOnly": "npm run build"
   },
@@ -21,11 +21,11 @@
     "claude-code",
     "skill"
   ],
-  "author": "",
+  "author": "kvenLin",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/electron-debug.git"
+    "url": "https://github.com/kvenLin/electron-debug.git"
   },
   "engines": {
     "node": ">=18.0.0"
