@@ -294,69 +294,94 @@ npm install --prefix ~/.local
 
 ## 日常使用示例（白话版）
 
-### 场景1：朋友说"我点了按钮没反应"
+### 场景1：调试按钮点击无反应
 
-```
-/electron-debug connect --electron-port 9333
-/electron-debug screenshot
-/electron-debug click "#那个按钮"
-/electron-debug screenshot
-/electron-debug eval "document.querySelector('#output').textContent"
-/electron-debug console --type error
-/electron-debug disconnect
-```
+**用户问 Claude：**
+> "我点了 Electron App 里的提交按钮，但是页面啥反应都没有，帮我看看是咋回事"
 
-### 场景2：页面加载完白屏了
+**Claude 会自动调度 skill 工具：**
+1. 连接 Electron：`/electron-debug connect --electron-port 9333`
+2. 截图看页面状态
+3. 点击那个按钮
+4. 截图对比点击前后
+5. 查看控制台有没有报错
+6. 检查 DOM 看看按钮状态
+7. AI 诊断可能的原因
 
-```
-/electron-debug connect --electron-port 9333
-/electron-debug screenshot
-/electron-debug eval "document.body.innerHTML"
-/electron-debug console
-/electron-debug disconnect
-```
+---
 
-### 场景3：想看看页面加载慢到底是哪里慢
+### 场景2：排查白屏问题
 
-```
-/electron-debug connect --electron-port 9333
-/electron-debug network --watch
-# 刷新页面
-/electron-debug disconnect
-```
+**用户问 Claude：**
+> "Electron 应用打开后页面是白的，什么都没显示，帮我排查一下"
 
-### 场景4：表单填了提交不了，想看看到底验证过了没
+**Claude 会自动调度 skill 工具：**
+1. 连接 Electron
+2. 截图确认白屏
+3. 执行 JS 查看 `document.body.innerHTML` 看看 DOM 树
+4. 查看控制台错误
+5. 检查网络请求是否成功
+6. 给出诊断结果
 
-```
-/electron-debug connect --electron-port 9333
-/electron-debug eval "document.querySelector('form').checkValidity()"
-/electron-debug eval "document.querySelector('input').validity"
-/electron-debug console
-/electron-debug disconnect
-```
+---
 
-### 场景5：想偷看人家网站登录请求发了啥
+### 场景3：分析页面加载性能
 
-```
-/electron-debug connect --electron-port 9333
-/electron-debug network --watch
-# 在页面上操作登录
-/electron-debug disconnect
-```
+**用户问 Claude：**
+> "这个 Electron 页面加载好慢，帮我看看是哪一步卡住了"
 
-### 场景6：自动化测试 - 连续点商品加入购物车
+**Claude 会自动调度 skill 工具：**
+1. 连接 Electron
+2. 开启网络监控：`/electron-debug network --watch`
+3. 刷新页面
+4. 分析每个请求的耗时
+5. 找出最慢的请求
+6. 给出优化建议
 
-```
-/electron-debug connect --electron-port 9333
-/electron-debug click ".product:nth-child(1) .add-cart"
-/electron-debug screenshot --path cart1.png
-/electron-debug click ".product:nth-child(2) .add-cart"
-/electron-debug screenshot --path cart2.png
-/electron-debug click ".product:nth-child(3) .add-cart"
-/electron-debug screenshot --path cart3.png
-/electron-debug eval "document.querySelector('.cart-badge').textContent"
-/electron-debug disconnect
-```
+---
+
+### 场景4：检查表单验证问题
+
+**用户问 Claude：**
+> "表单填完了点提交没反应，是不是前端验证有问题？帮我看看"
+
+**Claude 会自动调度 skill 工具：**
+1. 连接 Electron
+2. 执行 `form.checkValidity()` 检查表单验证状态
+3. 查看每个 input 的 validity 详情
+4. 查看控制台有没有验证错误日志
+5. 告诉你是哪个字段验证失败了
+
+---
+
+### 场景5：抓包看登录请求
+
+**用户问 Claude：**
+> "我想看看这个 Electron 应用登录的时候发了什么请求，帮我抓个包"
+
+**Claude 会自动调度 skill 工具：**
+1. 连接 Electron
+2. 开启网络监控
+3. 用户在页面上操作登录
+4. 分析捕获的请求
+5. 显示登录 API 的请求参数和响应
+
+---
+
+### 场景6：自动化 UI 测试
+
+**用户问 Claude：**
+> "帮我测试一下购物车功能：连续把前5个商品都加入购物车，然后截图看看购物车页面"
+
+**Claude 会自动调度 skill 工具：**
+1. 连接 Electron
+2. 点击第一个商品的"加入购物车"按钮
+3. 截图
+4. 点击第二个商品...
+5. 直到第五个
+6. 截图购物车页面
+7. 查看购物车数量 badge
+8. 断开连接
 
 ## 贡献
 

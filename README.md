@@ -294,69 +294,94 @@ npm install --prefix ~/.local
 
 ## Everyday Examples (Colloquial)
 
-### Scenario 1: Friend says "I clicked the button but nothing happened"
+### Scenario 1: Debug button click not working
 
-```
-/electron-debug connect --electron-port 9333
-/electron-debug screenshot
-/electron-debug click "#that-button"
-/electron-debug screenshot
-/electron-debug eval "document.querySelector('#output').textContent"
-/electron-debug console --type error
-/electron-debug disconnect
-```
+**User asks Claude:**
+> "I clicked the submit button in my Electron app but nothing happened. Can you help me figure out why?"
 
-### Scenario 2: Page loaded as a white screen
+**Claude dispatches skill tools automatically:**
+1. Connect to Electron: `/electron-debug connect --electron-port 9333`
+2. Take screenshot to see page state
+3. Click that button
+4. Take screenshot to compare before/after
+5. Check console for errors
+6. Inspect DOM to see button state
+7. AI diagnose possible causes
 
-```
-/electron-debug connect --electron-port 9333
-/electron-debug screenshot
-/electron-debug eval "document.body.innerHTML"
-/electron-debug console
-/electron-debug disconnect
-```
+---
 
-### Scenario 3: Want to see why the page loads slowly
+### Scenario 2: Troubleshoot white screen
 
-```
-/electron-debug connect --electron-port 9333
-/electron-debug network --watch
-# Refresh the page
-/electron-debug disconnect
-```
+**User asks Claude:**
+> "My Electron app shows a white screen when it opens. Can you help me troubleshoot?"
 
-### Scenario 4: Form filled but can't submit, want to check validation
+**Claude dispatches skill tools automatically:**
+1. Connect to Electron
+2. Take screenshot to confirm white screen
+3. Execute JS to check `document.body.innerHTML` and see DOM tree
+4. Check console errors
+5. Check if network requests succeeded
+6. Provide diagnosis
 
-```
-/electron-debug connect --electron-port 9333
-/electron-debug eval "document.querySelector('form').checkValidity()"
-/electron-debug eval "document.querySelector('input').validity"
-/electron-debug console
-/electron-debug disconnect
-```
+---
 
-### Scenario 5: Want to peek at login request details
+### Scenario 3: Analyze page load performance
 
-```
-/electron-debug connect --electron-port 9333
-/electron-debug network --watch
-# Do login operation on the page
-/electron-debug disconnect
-```
+**User asks Claude:**
+> "This Electron page loads really slowly. Can you help me figure out where it's getting stuck?"
 
-### Scenario 6: Automated test - click 10 products to add to cart
+**Claude dispatches skill tools automatically:**
+1. Connect to Electron
+2. Enable network monitoring: `/electron-debug network --watch`
+3. Refresh the page
+4. Analyze each request's duration
+5. Find the slowest request
+6. Provide optimization suggestions
 
-```
-/electron-debug connect --electron-port 9333
-/electron-debug click ".product:nth-child(1) .add-cart"
-/electron-debug screenshot --path cart1.png
-/electron-debug click ".product:nth-child(2) .add-cart"
-/electron-debug screenshot --path cart2.png
-/electron-debug click ".product:nth-child(3) .add-cart"
-/electron-debug screenshot --path cart3.png
-/electron-debug eval "document.querySelector('.cart-badge').textContent"
-/electron-debug disconnect
-```
+---
+
+### Scenario 4: Check form validation issues
+
+**User asks Claude:**
+> "I filled out the form but clicking submit does nothing. Is there a validation issue? Can you check?"
+
+**Claude dispatches skill tools automatically:**
+1. Connect to Electron
+2. Execute `form.checkValidity()` to check form validation state
+3. Check each input's validity details
+4. Look for validation error logs in console
+5. Tell you which field is failing validation
+
+---
+
+### Scenario 5: Capture login requests
+
+**User asks Claude:**
+> "I want to see what requests are sent when this Electron app logs in. Can you capture the network traffic?"
+
+**Claude dispatches skill tools automatically:**
+1. Connect to Electron
+2. Enable network monitoring
+3. User performs login operation on the page
+4. Analyze captured requests
+5. Display the login API's request parameters and response
+
+---
+
+### Scenario 6: Automated UI testing
+
+**User asks Claude:**
+> "Help me test the shopping cart: add the first 5 products to cart, then take a screenshot of the cart page"
+
+**Claude dispatches skill tools automatically:**
+1. Connect to Electron
+2. Click "add to cart" for first product
+3. Take screenshot
+4. Click second product...
+5. Until fifth
+6. Screenshot the cart page
+7. Check cart badge count
+8. Disconnect
 
 ## Contributing
 
