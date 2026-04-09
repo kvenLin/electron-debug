@@ -93,21 +93,59 @@ async function daemonStatus() {
         req.end();
     });
 }
-function parseArgs(argv) {
-    // Check for daemon subcommand
-    if (argv[2] === 'daemon') {
-        const subCommand = argv[3] || '';
-        return {
-            command: 'daemon',
-            args: { _: [subCommand] },
-        };
+
+/**
+ * 自动管理 daemon 连接
+ * 如果 daemon 未运行，自动启动
+ * 返回 daemonStatus 信息
+ */
+async function ensureDaemon(args) {
+    const isRunning = await daemonCheck();
+    if (isRunning) {
+        return { started: false, running: true };
     }
+
+    // Daemon 未运行，需要启动
+    const electronPort = Number(args.electronPort) || Number(args.port) || 9222;
+
+    // 如果是 connect 或 daemon start 命令，不需要再启动
+    const command = args._ && Array.isArray(args._) ? args._[0] : '';
+    if (command === 'connect' || command === 'daemon') {
+        return { started: false, running: false };
+    }
+
+    // 自动启动 daemon
+    console.log('Daemon not running, starting...');
+    await cmdDaemonStart({ electronPort });
+    return { started: true, running: true };
+}
+
+/**
+ * 便捷函数：确保已连接 Electron
+ * 用于需要 CDP 连接的命令
+ */
+async function ensureConnected() {
+    const status = await daemonStatus();
+    if (!status.running) {
+        throw new Error('Daemon not running. Use "connect --electron-port <port>" first.');
+    }
+    if (!status.connected) {
+        throw new Error('Not connected to Electron. Use "connect --electron-port <port>" first.');
+    }
+    return status;
+}
+
+function parseArgs(argv) {
     const command = argv[2] || 'status';
     const args = {};
+
+    // Parse all arguments starting from index 3
     for (let i = 3; i < argv.length; i++) {
         const arg = argv[i];
         if (arg.startsWith('--')) {
-            const key = arg.slice(2);
+            let key = arg.slice(2);
+            // Convert hyphenated keys to camelCase (e.g., electron-port -> electronPort)
+            key = key.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
             const next = argv[i + 1];
             if (next && !next.startsWith('--')) {
                 // Try to parse as number
@@ -119,11 +157,27 @@ function parseArgs(argv) {
                 args[key] = true;
             }
         }
+        else if (!args._) {
+            // First non-flag argument is the subcommand for daemon
+            args._ = [arg];
+        }
     }
+
+    // If no command was set, default to status
+    if (command === 'daemon' && !args._[0]) {
+        args._ = [''];
+    }
+
     return { command, args };
 }
 async function runCommand(cli) {
     const { command, args } = cli;
+
+    // 自动管理 daemon（connect 和 daemon 命令不需要）
+    if (command !== 'connect' && command !== 'daemon' && command !== 'status') {
+        await ensureDaemon(args);
+    }
+
     switch (command) {
         case 'connect':
             await cmdConnect(args);
@@ -189,18 +243,27 @@ async function runCommand(cli) {
 }
 // Command implementations
 async function cmdConnect(args) {
-    connectionPort = Number(args.port) || 9222;
+    connectionPort = Number(args.electronPort) || Number(args.port) || 9222;
     connectionHost = args.host ? String(args.host) : '127.0.0.1';
     client = new CDPClient({ host: connectionHost, port: connectionPort });
     // Fetch targets via HTTP JSON endpoint
     const http = await import('http');
+    console.error(`DEBUG: Connecting to http://${connectionHost}:${connectionPort}/json`);
     const targetsJson = await new Promise((resolve, reject) => {
-        http.get(`http://${connectionHost}:${connectionPort}/json`, (res) => {
+        const req = http.get(`http://${connectionHost}:${connectionPort}/json`, (res) => {
+            console.error(`DEBUG: Got response status: ${res.statusCode}`);
             let data = '';
             res.on('data', (chunk) => (data += chunk));
-            res.on('end', () => resolve(data));
+            res.on('end', () => {
+                console.error(`DEBUG: Got data length: ${data.length}`);
+                resolve(data);
+            });
             res.on('error', reject);
-        }).on('error', reject);
+        });
+        req.on('error', (err) => {
+            console.error(`DEBUG: Request error: ${err.message}`);
+            reject(err);
+        });
     });
     const targets = JSON.parse(targetsJson);
     const pageTarget = targets.find((t) => t.type === 'page');
@@ -293,6 +356,25 @@ async function cmdSwitchPage(args) {
     console.log(`Switched to: ${target.title}`);
 }
 async function cmdConsole(args) {
+    // Try daemon mode first
+    const isDaemonRunning = await daemonCheck();
+    if (isDaemonRunning) {
+        try {
+            const messages = await daemonRequest('/console', 'GET');
+            const filterType = String(args.type || 'all');
+            console.log('\nConsole Messages:');
+            console.log('─'.repeat(60));
+            (messages || [])
+                .filter((m) => filterType === 'all' || m.type === filterType)
+                .forEach((m) => {
+                console.log(`[${m.type}] ${m.text}`);
+            });
+        } catch (err) {
+            console.error('Error:', err.message);
+        }
+        return;
+    }
+    // Direct mode
     if (!client) {
         console.log('Not connected.');
         return;
@@ -366,8 +448,29 @@ async function cmdNetwork(args) {
     console.log('Network monitoring enabled (use --watch to stream)');
 }
 async function cmdScreenshot(args) {
-    if (!client) {
-        console.log('Not connected.');
+    // Try daemon mode first
+    const isDaemonRunning = await daemonCheck();
+    if (isDaemonRunning) {
+        const path = String(args.path || '');
+        try {
+            const result = await daemonRequest('/screenshot', 'GET');
+            if (path) {
+                const fs = await import('fs/promises');
+                const buffer = Buffer.from(result.data, 'base64');
+                await fs.writeFile(path, buffer);
+                console.log(`Screenshot saved to: ${path}`);
+            } else {
+                console.log(`Screenshot captured (${result.data.length} bytes, base64)`);
+                console.log(`Preview: data:image/${result.format || 'png'};base64,${result.data.slice(0, 100)}...`);
+            }
+        } catch (err) {
+            console.error('Error:', err.message);
+        }
+        return;
+    }
+    // Direct mode
+    if (!client || !client.isConnected()) {
+        console.log('Not connected. Use "daemon start" or "connect" first.');
         return;
     }
     const path = String(args.path || '');
