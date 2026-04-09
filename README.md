@@ -6,6 +6,8 @@
 
 > Claude Code Skill for debugging Electron applications using Chrome DevTools Protocol (CDP)
 
+[**中文文档**](README_zh.md) | [English](README.md)
+
 ## Features
 
 - **Daemon Mode** - Background process maintains CDP connection for continuous testing
@@ -289,6 +291,72 @@ npm install --prefix ~/.local
 | Console | `/electron-debug console` |
 | Diagnose | `/electron-debug diagnose "issue description"` |
 | Disconnect | `/electron-debug disconnect` |
+
+## Everyday Examples (Colloquial)
+
+### Scenario 1: Friend says "I clicked the button but nothing happened"
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug screenshot
+/electron-debug click "#that-button"
+/electron-debug screenshot
+/electron-debug eval "document.querySelector('#output').textContent"
+/electron-debug console --type error
+/electron-debug disconnect
+```
+
+### Scenario 2: Page loaded as a white screen
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug screenshot
+/electron-debug eval "document.body.innerHTML"
+/electron-debug console
+/electron-debug disconnect
+```
+
+### Scenario 3: Want to see why the page loads slowly
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug network --watch
+# Refresh the page
+/electron-debug disconnect
+```
+
+### Scenario 4: Form filled but can't submit, want to check validation
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug eval "document.querySelector('form').checkValidity()"
+/electron-debug eval "document.querySelector('input').validity"
+/electron-debug console
+/electron-debug disconnect
+```
+
+### Scenario 5: Want to peek at login request details
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug network --watch
+# Do login operation on the page
+/electron-debug disconnect
+```
+
+### Scenario 6: Automated test - click 10 products to add to cart
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug click ".product:nth-child(1) .add-cart"
+/electron-debug screenshot --path cart1.png
+/electron-debug click ".product:nth-child(2) .add-cart"
+/electron-debug screenshot --path cart2.png
+/electron-debug click ".product:nth-child(3) .add-cart"
+/electron-debug screenshot --path cart3.png
+/electron-debug eval "document.querySelector('.cart-badge').textContent"
+/electron-debug disconnect
+```
 
 ## Contributing
 

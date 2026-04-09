@@ -6,6 +6,8 @@
 
 > Claude Code Skill - 使用 Chrome DevTools Protocol (CDP) 调试 Electron 应用
 
+[**English**](README.md) | [中文文档](README_zh.md)
+
 ## 特性
 
 - **Daemon 模式** - 后台进程保持 CDP 连接，支持持续测试
@@ -226,14 +228,15 @@ curl -X DELETE http://127.0.0.1:9229/
 electron-debug/
 ├── bin/
 │   ├── cli.js        # CLI 客户端入口
-│   └── daemon.js    # Daemon 服务入口
-├── dist/            # 编译后的 JavaScript
+│   └── daemon.js     # Daemon 服务入口
+├── dist/             # 编译后的 JavaScript
 ├── skills/
 │   └── electron-debug/
-│       └── SKILL.md # Claude Code Skill 定义
-├── node_modules/    # 依赖
+│       └── SKILL.md  # Claude Code Skill 定义
+├── node_modules/     # 依赖
 ├── package.json
-└── README.md        # 英文文档
+├── README.md         # 英文文档
+└── README_zh.md      # 中文文档
 ```
 
 ## 故障排除
@@ -288,6 +291,72 @@ npm install --prefix ~/.local
 | 控制台 | `/electron-debug console` |
 | 诊断 | `/electron-debug diagnose "问题描述"` |
 | 断开 | `/electron-debug disconnect` |
+
+## 日常使用示例（白话版）
+
+### 场景1：朋友说"我点了按钮没反应"
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug screenshot
+/electron-debug click "#那个按钮"
+/electron-debug screenshot
+/electron-debug eval "document.querySelector('#output').textContent"
+/electron-debug console --type error
+/electron-debug disconnect
+```
+
+### 场景2：页面加载完白屏了
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug screenshot
+/electron-debug eval "document.body.innerHTML"
+/electron-debug console
+/electron-debug disconnect
+```
+
+### 场景3：想看看页面加载慢到底是哪里慢
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug network --watch
+# 刷新页面
+/electron-debug disconnect
+```
+
+### 场景4：表单填了提交不了，想看看到底验证过了没
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug eval "document.querySelector('form').checkValidity()"
+/electron-debug eval "document.querySelector('input').validity"
+/electron-debug console
+/electron-debug disconnect
+```
+
+### 场景5：想偷看人家网站登录请求发了啥
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug network --watch
+# 在页面上操作登录
+/electron-debug disconnect
+```
+
+### 场景6：自动化测试 - 连续点商品加入购物车
+
+```
+/electron-debug connect --electron-port 9333
+/electron-debug click ".product:nth-child(1) .add-cart"
+/electron-debug screenshot --path cart1.png
+/electron-debug click ".product:nth-child(2) .add-cart"
+/electron-debug screenshot --path cart2.png
+/electron-debug click ".product:nth-child(3) .add-cart"
+/electron-debug screenshot --path cart3.png
+/electron-debug eval "document.querySelector('.cart-badge').textContent"
+/electron-debug disconnect
+```
 
 ## 贡献
 
