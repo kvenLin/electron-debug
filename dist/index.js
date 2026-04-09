@@ -308,9 +308,31 @@ async function cmdStatus() {
     }
 }
 async function cmdListPages(args) {
+    // Use daemon API
+    const isDaemonRunning = await daemonCheck();
+    if (isDaemonRunning) {
+        try {
+            const targets = await daemonRequest('/targets', 'GET');
+            console.log('\nAvailable Pages:');
+            console.log('─'.repeat(60));
+            (targets || [])
+                .filter((t) => t.type === 'page')
+                .forEach((t, i) => {
+                const marker = t.id === currentTargetId ? '→ ' : '  ';
+                console.log(`${marker}[${i + 1}] ${t.title}`);
+                console.log(`     URL: ${t.url}`);
+                console.log(`     ID: ${t.id}`);
+                console.log('');
+            });
+        }
+        catch (err) {
+            console.error('Error:', err.message);
+        }
+        return;
+    }
+    // Fallback to direct connection
     const port = Number(args.port) || connectionPort;
     const host = args.host ? String(args.host) : connectionHost;
-    // Fetch targets via HTTP JSON endpoint (doesn't require connection)
     const http = await import('http');
     const targetsJson = await new Promise((resolve, reject) => {
         http.get(`http://${host}:${port}/json`, (res) => {
