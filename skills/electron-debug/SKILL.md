@@ -31,11 +31,11 @@ Electron 应用调试技能，支持 Chrome DevTools Protocol (CDP) 完整调试
 - 截图看看页面长什么样
 - AI 自动诊断问题
 
-**一句话使用流程：**
+**使用流程：**
 1. 先启动 Electron： `electron . --remote-debugging-port=9333`
-2. 连接：`/electron-debug connect --electron-port 9333`
-3. 开始调试
-4. 断连：`/electron-debug disconnect`
+2. 首次连接：`/electron-debug connect --electron-port 9333`
+3. 后续所有命令直接使用，无需重复连接
+4. 调试完成后断开：`/electron-debug disconnect`
 
 **常用场景：**
 - "debug Electron" → 自动连接调试
