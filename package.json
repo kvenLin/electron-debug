@@ -9,9 +9,7 @@
     "electron-debug-daemon": "./bin/daemon.js"
   },
   "scripts": {
-    "build": "tsc",
-    "test": "echo 'No tests specified'",
-    "prepublishOnly": "npm run build"
+    "test": "echo 'No tests specified'"
   },
   "keywords": [
     "electron",
