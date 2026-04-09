@@ -1,0 +1,11 @@
+.claude/
+.idea/
+.git/
+node_modules/
+src/
+*.md
+!README.md
+!skills/**/*.md
+CLAUDE.md
+AGENTS.md
+.DS_Store
