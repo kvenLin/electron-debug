@@ -508,18 +508,19 @@ async function cmdScreenshot(args) {
     // Try daemon mode first
     const isDaemonRunning = await daemonCheck();
     if (isDaemonRunning) {
-        const path = String(args.path || '');
+        const specifiedPath = String(args.path || '');
         try {
             const result = await daemonRequest('/screenshot', 'GET');
-            if (path) {
-                const fs = await import('fs/promises');
-                const buffer = Buffer.from(result.data, 'base64');
-                await fs.writeFile(path, buffer);
-                console.log(`Screenshot saved to: ${path}`);
-            } else {
-                console.log(`Screenshot captured (${result.data.length} bytes, base64)`);
-                console.log(`Preview: data:image/${result.format || 'png'};base64,${result.data.slice(0, 100)}...`);
+            let savePath = specifiedPath;
+            if (!savePath) {
+                const now = new Date();
+                const timestamp = now.toISOString().replace(/[-:T]/g, '').slice(0, 14);
+                savePath = `${process.cwd()}/screenshot-${timestamp}.png`;
             }
+            const fs = await import('fs/promises');
+            const buffer = Buffer.from(result.data, 'base64');
+            await fs.writeFile(savePath, buffer);
+            console.log(`Screenshot saved to: ${savePath}`);
         } catch (err) {
             console.error('Error:', err.message);
         }
@@ -530,20 +531,20 @@ async function cmdScreenshot(args) {
         console.log('Not connected. Use "daemon start" or "connect" first.');
         return;
     }
-    const path = String(args.path || '');
+    const specifiedPath = String(args.path || '');
     const format = args.jpeg ? 'jpeg' : 'png';
     const quality = args.jpeg ? 80 : undefined;
     const result = await client.captureScreenshot(format, quality);
-    if (path) {
-        const fs = await import('fs/promises');
-        const buffer = Buffer.from(result.data, 'base64');
-        await fs.writeFile(path, buffer);
-        console.log(`Screenshot saved to: ${path}`);
+    let savePath = specifiedPath;
+    if (!savePath) {
+        const now = new Date();
+        const timestamp = now.toISOString().replace(/[-:T]/g, '').slice(0, 14);
+        savePath = `${process.cwd()}/screenshot-${timestamp}.png`;
     }
-    else {
-        console.log(`Screenshot captured (${result.data.length} bytes, base64)`);
-        console.log(`Preview: data:image/${format};base64,${result.data.slice(0, 100)}...`);
-    }
+    const fs = await import('fs/promises');
+    const buffer = Buffer.from(result.data, 'base64');
+    await fs.writeFile(savePath, buffer);
+    console.log(`Screenshot saved to: ${savePath}`);
 }
 async function cmdDom(args) {
     // Try daemon mode first
