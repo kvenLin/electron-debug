@@ -304,19 +304,8 @@ export class ElectronDebugDaemon {
         }
         try {
             const screenshot = await this.client.captureScreenshot('png');
-            // For GET requests, return raw PNG (base64 decoded)
-            // For POST requests, return JSON with base64
-            const acceptHeader = res.req.headers.accept || '';
-            if (acceptHeader.includes('image/png') || res.req.method === 'GET') {
-                // Return raw PNG binary
-                res.setHeader('Content-Type', 'image/png');
-                const binary = Buffer.from(screenshot.data, 'base64');
-                res.end(binary);
-            }
-            else {
-                // Return JSON
-                this.sendJson(res, { success: true, data: screenshot });
-            }
+            // Always return JSON for CLI compatibility
+            this.sendJson(res, { success: true, data: screenshot, format: 'png' });
         }
         catch (err) {
             this.sendJson(res, { success: false, error: String(err) });
