@@ -85,9 +85,6 @@ Electron 应用调试技能，支持 Chrome DevTools Protocol (CDP) 完整调试
 
 # 截图并保存到文件
 /electron-debug screenshot --path ./screenshot.png
-
-# 全页面截图
-/electron-debug screenshot --full
 ```
 
 ## 元素交互
@@ -107,10 +104,10 @@ Electron 应用调试技能，支持 Chrome DevTools Protocol (CDP) 完整调试
 /electron-debug eval "document.title"
 /electron-debug eval "navigator.userAgent"
 
-/# 调用函数
+# 调用函数
 /electron-debug eval "Math.random()"
 
-/# 多行表达式
+# 多行表达式
 /electron-debug eval "(() => { return document.querySelector('#output').textContent; })()"
 ```
 
@@ -121,7 +118,7 @@ Electron 应用调试技能，支持 Chrome DevTools Protocol (CDP) 完整调试
 /electron-debug dom --selector "#my-element"
 /electron-debug dom --selector ".class-name"
 
-/# 查看元素属性
+# 查看元素属性
 /electron-debug dom --selector "#my-input" --props "id,value,disabled"
 ```
 

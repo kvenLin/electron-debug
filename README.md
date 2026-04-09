@@ -22,10 +22,28 @@
 
 ## Installation
 
-### Option 1: via skills.sh (Recommended)
+### Two-Step Setup (Recommended)
+
+**Step 1: Install Claude Code Skill** (enables `/electron-debug` commands in Claude Code)
 
 ```bash
 npx skills add kvenLin/electron-debug@electron-debug
+```
+
+**Step 2: Install CLI Tool** (required for the skill to work)
+
+```bash
+npm install -g electron-debug-skill
+```
+
+### Option 1: via skills.sh (Recommended)
+
+```bash
+# Step 1: Install skill definition
+npx skills add kvenLin/electron-debug@electron-debug
+
+# Step 2: Install CLI tool
+npm install -g electron-debug-skill
 ```
 
 ### Option 2: Manual Install
@@ -35,15 +53,8 @@ npx skills add kvenLin/electron-debug@electron-debug
 git clone https://github.com/kvenLin/electron-debug.git
 cd electron-debug
 
-# Install dependencies
-npm install
-```
-
-### Option 3: Development (Symlink)
-
-```bash
-ln -s ~/path/to/electron-debug ~/.claude/skills/electron-debug
-/reload-plugins
+# Install CLI tool globally
+npm install -g
 ```
 
 ## Quick Start

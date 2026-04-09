@@ -22,10 +22,28 @@
 
 ## 安装
 
-### 方式一：通过 skills.sh 安装（推荐）
+### 两步安装（推荐）
+
+**步骤 1: 安装 Claude Code Skill**（使 `/electron-debug` 命令在 Claude Code 中可用）
 
 ```bash
 npx skills add kvenLin/electron-debug@electron-debug
+```
+
+**步骤 2: 安装 CLI 工具**（skill 运行所需）
+
+```bash
+npm install -g electron-debug-skill
+```
+
+### 方式一：通过 skills.sh 安装（推荐）
+
+```bash
+# 步骤 1: 安装 skill 定义
+npx skills add kvenLin/electron-debug@electron-debug
+
+# 步骤 2: 安装 CLI 工具
+npm install -g electron-debug-skill
 ```
 
 ### 方式二：手动安装
@@ -35,15 +53,8 @@ npx skills add kvenLin/electron-debug@electron-debug
 git clone https://github.com/kvenLin/electron-debug.git
 cd electron-debug
 
-# 安装依赖
-npm install
-```
-
-### 方式三：开发调试（符号链接）
-
-```bash
-ln -s ~/path/to/electron-debug ~/.claude/skills/electron-debug
-/reload-plugins
+# 全局安装 CLI 工具
+npm install -g
 ```
 
 ## 快速开始
