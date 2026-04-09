@@ -97,27 +97,35 @@ async function daemonStatus() {
 /**
  * 自动管理 daemon 连接
  * 如果 daemon 未运行，自动启动
+ * 如果 daemon 未连接，自动连接
  * 返回 daemonStatus 信息
  */
 async function ensureDaemon(args) {
-    const isRunning = await daemonCheck();
-    if (isRunning) {
-        return { started: false, running: true };
-    }
-
-    // Daemon 未运行，需要启动
     const electronPort = Number(args.electronPort) || Number(args.port) || 9222;
+    const electronHost = args.host ? String(args.host) : '127.0.0.1';
 
-    // 如果是 connect 或 daemon start 命令，不需要再启动
+    // 如果是 connect 或 daemon 命令，不需要自动连接
     const command = args._ && Array.isArray(args._) ? args._[0] : '';
     if (command === 'connect' || command === 'daemon') {
-        return { started: false, running: false };
+        return { started: false, running: false, connected: false };
     }
 
-    // 自动启动 daemon
-    console.log('Daemon not running, starting...');
-    await cmdDaemonStart({ electronPort });
-    return { started: true, running: true };
+    // 检查 daemon 是否运行
+    const isRunning = await daemonCheck();
+    if (!isRunning) {
+        // 自动启动 daemon
+        console.log('Daemon not running, starting...');
+        await cmdDaemonStart({ electronPort, electronHost });
+    }
+
+    // 检查是否已连接
+    const status = await daemonStatus();
+    if (!status.connected) {
+        console.log('Not connected to Electron, connecting...');
+        await daemonRequest('/connect', 'POST', { host: electronHost, port: electronPort });
+    }
+
+    return { started: !isRunning, running: true, connected: true };
 }
 
 /**
@@ -132,6 +140,7 @@ async function ensureConnected() {
     if (!status.connected) {
         throw new Error('Not connected to Electron. Use "connect --electron-port <port>" first.');
     }
+    return status;
     return status;
 }
 
@@ -243,63 +252,59 @@ async function runCommand(cli) {
 }
 // Command implementations
 async function cmdConnect(args) {
-    connectionPort = Number(args.electronPort) || Number(args.port) || 9222;
-    connectionHost = args.host ? String(args.host) : '127.0.0.1';
-    client = new CDPClient({ host: connectionHost, port: connectionPort });
-    // Fetch targets via HTTP JSON endpoint
-    const http = await import('http');
-    console.error(`DEBUG: Connecting to http://${connectionHost}:${connectionPort}/json`);
-    const targetsJson = await new Promise((resolve, reject) => {
-        const req = http.get(`http://${connectionHost}:${connectionPort}/json`, (res) => {
-            console.error(`DEBUG: Got response status: ${res.statusCode}`);
-            let data = '';
-            res.on('data', (chunk) => (data += chunk));
-            res.on('end', () => {
-                console.error(`DEBUG: Got data length: ${data.length}`);
-                resolve(data);
-            });
-            res.on('error', reject);
-        });
-        req.on('error', (err) => {
-            console.error(`DEBUG: Request error: ${err.message}`);
-            reject(err);
-        });
-    });
-    const targets = JSON.parse(targetsJson);
-    const pageTarget = targets.find((t) => t.type === 'page');
-    if (!pageTarget) {
-        console.log('No page target found');
+    const electronPort = Number(args.electronPort) || Number(args.port) || 9222;
+    const electronHost = args.host ? String(args.host) : '127.0.0.1';
+
+    // Check if daemon is running
+    const isRunning = await daemonCheck();
+    if (!isRunning) {
+        // Start daemon first
+        console.log('Starting daemon...');
+        await cmdDaemonStart({ electronPort, electronHost });
+    }
+
+    // Ask daemon to connect to Electron
+    try {
+        const result = await daemonRequest('/connect', 'POST', { host: electronHost, port: electronPort });
+        console.log(`Connected to ${electronHost}:${electronPort}`);
+        if (result.target) {
+            console.log(`Attached to: ${result.target.title} (${result.target.url})`);
+        }
+    } catch (err) {
+        console.error('Failed to connect:', err.message);
+    }
+}
+async function cmdDisconnect() {
+    // Check if daemon is running
+    const isRunning = await daemonCheck();
+    if (!isRunning) {
+        console.log('Not connected');
         return;
     }
-    // Connect directly to the target's WebSocket URL
-    await client.connectToTarget(pageTarget.webSocketDebuggerUrl);
-    currentTargetId = pageTarget.id;
-    console.log(`Connected to ${connectionHost}:${connectionPort}`);
-    console.log(`Attached to: ${pageTarget.title} (${pageTarget.url})`);
-}
-function cmdDisconnect() {
-    client?.disconnect();
-    client = null;
-    currentTargetId = null;
-    consoleWatcher = false;
-    networkWatcher = false;
-    console.log('Disconnected');
+
+    // Tell daemon to disconnect
+    try {
+        await daemonRequest('/disconnect', 'POST', {});
+        console.log('Disconnected from Electron');
+    } catch (err) {
+        console.error('Error:', err.message);
+    }
 }
 async function cmdStatus() {
-    if (!client || !client.isConnected()) {
-        console.log('Status: Disconnected');
+    // Check daemon status
+    const status = await daemonStatus();
+    if (!status.running) {
+        console.log('Daemon: Not running');
+        console.log('Use "connect --electron-port <port>" to start');
         return;
     }
-    console.log('Status: Connected');
-    console.log(`Target: ${currentTargetId || 'none'}`);
-    if (client) {
-        try {
-            const targets = await client.getTargets();
-            console.log(`Available targets: ${targets.length}`);
-        }
-        catch {
-            // ignore
-        }
+    console.log('Daemon: Running');
+    console.log(`Connected to Electron: ${status.connected ? 'Yes' : 'No'}`);
+    if (status.electronPort) {
+        console.log(`Electron port: ${status.electronPort}`);
+    }
+    if (status.targetTitle) {
+        console.log(`Target: ${status.targetTitle}`);
     }
 }
 async function cmdListPages(args) {
